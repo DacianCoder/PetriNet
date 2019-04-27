@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 import static gui.Constants.*;
 
@@ -16,6 +15,7 @@ public class Point extends Node {
     public void render(Graphics g) {
         g.setColor(this.getColor() != null ? this.getColor() : Color.BLACK);
         g.drawOval(getLocation().getX(), getLocation().getY(), POINT_WIDTH, POINT_HEIGHT);
+//        g.drawLine(getLocation().getX() + POINT_WIDTH, getLocation().getY() + POINT_HEIGHT, 0, 0);
         handleTextDrawing(g);
     }
 

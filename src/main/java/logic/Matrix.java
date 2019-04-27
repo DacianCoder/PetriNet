@@ -44,7 +44,6 @@ public class Matrix {
         point.setLocation(location);
         String name = POINT_PREFIX + pointCount;
         point.setName(name);
-        point.setValue(1);
         point.setType(gui.enums.Shape.POINT);
         nodes.put(name, point);
         pointCount++;
@@ -55,7 +54,6 @@ public class Matrix {
         transition.setLocation(location);
         String name = TRANSITION_PREFIX + transitionCount;
         transition.setName(name);
-        transition.setValue(1);
         transition.setType(Shape.TRANSITION);
         nodes.put(name, transition);
         transitionCount++;
@@ -64,8 +62,16 @@ public class Matrix {
 
     public void addArc(String from, String to) {
         Arc arc = new Arc();
-        arc.setOrigin(nodes.get(from));
-        arc.setDestination(nodes.get(to));
+        Node origin = nodes.get(from);
+        Node destination = nodes.get(to);
+        arc.setOrigin(origin);
+        arc.setDestination(destination);
+        if (origin instanceof Transition) {
+            ((Transition) origin).addGoingArc(arc);
+        } else {
+            ((Transition) destination).addComingArc(arc);
+        }
+
         arc.setValue(1);
         String name = ARC_PREFIX + arcCount;
         arc.setName(name);
@@ -106,5 +112,34 @@ public class Matrix {
         return nodes.values().stream()
                 .filter(node -> LocationUtils.isNodeNameClicked(node, location))
                 .findAny();
+    }
+
+    public Optional<Transition> getTransition(Location location) {
+        return getTransitionName(location)
+                .map(s -> Optional.of((Transition) nodes.get(s)))
+                .orElseGet(() -> nodes.values().stream()
+                        .filter(Transition.class::isInstance)
+                        .map(Transition.class::cast)
+                        .filter(t -> isInTransitionArea(t.getLocation(), location))
+                        .findAny());
+
+    }
+
+    //extract duplicate
+    public Optional<Transition> getRunnableTransition(Location location) {
+        return getTransitionName(location)
+                .map(s -> Optional.of((Transition) nodes.get(s)))
+                .orElseGet(() -> nodes.values().stream()
+                        .filter(Transition.class::isInstance)
+                        .map(Transition.class::cast)
+                        .filter(t -> isInTransitionArea(t.getLocation(), location))
+                        .filter(Transition::canRun)
+                        .findAny());
+
+    }
+
+    public boolean shouldAddNode(Location location) {
+        return nodes.values().stream()
+                .filter(node -> LocationUtils.isInTransitionArea())
     }
 }

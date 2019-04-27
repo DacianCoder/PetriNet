@@ -12,9 +12,9 @@ import java.awt.*;
 public abstract class Node implements ValueNameComponent {
     private Location location;
     private String name;
-    private int value = 1;
+    private int value = 0;
     private Shape type;
-    private Color color;
+    private Color color=Color.BLACK;
     protected Rectangle textPosition = new Rectangle();
 
     public abstract void render(Graphics g);

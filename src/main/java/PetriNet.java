@@ -1,6 +1,7 @@
 import gui.*;
 import gui.enums.Actions;
 import logic.Matrix;
+import logic.RunNet;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,6 +27,7 @@ public class PetriNet {
     private JCheckBox continuousItemsCheckBox;
     private Matrix matrix = new Matrix();
     private Actions action = NONE;
+    private RunNet runNet = new RunNet(matrix);
 
     private String currentArcOrigin = "";
     private boolean isOriginPoint = false;
@@ -46,6 +48,8 @@ public class PetriNet {
         runButton.addActionListener(actionEvent -> {
             action = RUN;
             setActiveButton(runButton);
+            runNet.validateTransitions();
+            matrix.render(panel1.getGraphics());
         });
         editButton.addActionListener(aE -> {
             action = EDIT;
@@ -101,6 +105,9 @@ public class PetriNet {
 
         switch (action) {
             case DRAW_POINT:
+                if(!matrix.shouldAddNode(location)){
+                    return;
+                }
                 matrix.addPoint(location);
                 if (!continuousItemsCheckBox.isSelected()) {
                     pauseEditing();
@@ -125,6 +132,7 @@ public class PetriNet {
                 drawArcOrigin(location);
                 break;
             case RUN:
+                caseRun(location);
                 break;
             case NONE:
                 break;
@@ -132,6 +140,17 @@ public class PetriNet {
                 editCase(location);
                 break;
         }
+    }
+
+    private void caseRun(Location location) {
+        Optional<Transition> maybeTransition = matrix.getRunnableTransition(location);
+        if (!maybeTransition.isPresent()) {
+            info.setText("Please select a valid transition");
+            return;
+        }
+        maybeTransition.get().runTransition();
+        clearBoard();
+        matrix.render(panel1.getGraphics());
     }
 
     private void drawArcOrigin(Location location) {
@@ -201,6 +220,12 @@ public class PetriNet {
     }
 
     private void setActiveButton(JButton button) {
+        if (action != RUN) {
+            clearBoard();
+            runNet.unvalidateTransitions();
+            matrix.render(panel1.getGraphics());
+        }
+        runNet.unvalidateTransitions();
 
         mainButtons.forEach(jButton -> {
             if (jButton == button) {
@@ -219,6 +244,7 @@ public class PetriNet {
 
     private void clearBoard() {
         Graphics g = panel1.getGraphics();
+        runNet.unvalidateTransitions();
         g.setColor(Color.WHITE);
         g.fillRect(0, pointButton.getY() + pointButton.getHeight(), clearButton.getX() + clearButton.getWidth(), clearButton.getY() - clearButton.getHeight());
     }

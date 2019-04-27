@@ -32,7 +32,7 @@ public class EditItem extends JDialog {
                 ((Transition) editableItem).setName(name.getText());
             } else if (editableItem instanceof Point) {
                 int x = (Integer) value.getValue();
-                if (x <= 0) {
+                if (x < 0) {
                     valueTextArea.setForeground(Color.RED);
                     return;
                 }

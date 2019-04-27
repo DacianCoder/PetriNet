@@ -3,11 +3,14 @@ package gui;
 import lombok.*;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
+import static gui.Constants.POINT_HEIGHT;
+import static gui.Constants.POINT_WIDTH;
 import static gui.LocationUtils.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class Arc implements ValueNameComponent {
     private Node origin;
     private Node destination;
@@ -26,13 +29,33 @@ public class Arc implements ValueNameComponent {
         Location lineOrigin = this.origin instanceof Point ?
                 getPointAbsolutePosition(this.origin.getLocation()) :
                 getTransitionAbsolutePosition(this.origin.getLocation());
+
         Location lineDestination = this.origin instanceof Point ?
                 getTransitionAbsolutePosition(this.destination.getLocation()) :
                 getPointAbsolutePosition(this.destination.getLocation());
 
+        double angleRad;
+//        TODO better algorithm
+        if (this.origin instanceof Point) {
+            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
+            lineOrigin.setX((int) (lineOrigin.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
+            lineOrigin.setY((int) (lineOrigin.getY() + (POINT_HEIGHT / 2 * Math.sin(angleRad))));
+        }
+
+        if (this.destination instanceof Point) {
+            angleRad = getAngle(this.destination.getLocation(), this.origin.getLocation());
+            lineDestination.setY((int) (lineDestination.getY() + (POINT_HEIGHT / 2 * Math.sin(angleRad))));
+            lineDestination.setX((int) (lineDestination.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
+        }
+
+        if (destination instanceof Transition && ((Transition) destination).canRun()) {
+            g.setColor(destination.getColor());
+        } else {
+            g.setColor(Color.BLACK);
+        }
         g.drawLine(lineOrigin.getX(), lineOrigin.getY(), lineDestination.getX(), lineDestination.getY());
         //TODO draw an actual triangle
-//        g.fillRect(lineDestination.getX() - 5, lineDestination.getY() - 5, 10, 10);
+        g.fillRect(lineDestination.getX() - 5, lineDestination.getY() - 5, 10, 10);
     }
 
 
@@ -46,13 +69,7 @@ public class Arc implements ValueNameComponent {
     }
 
 
-    public double getAngle(Location target, Location origin) {
-        double angle = Math.toDegrees(Math.atan2(target.getY() - origin.getY(), target.getX() - origin.getY()));
-
-        if (angle < 0) {
-            angle += 360;
-        }
-
-        return angle;
+    public double getAngle(Location from, Location to) {
+        return Math.atan2(to.getY() - from.getY(), to.getX() - from.getY());
     }
 }
