@@ -1,4 +1,4 @@
-package gui.enums;
+package enums;
 
 public enum Actions {
     NONE, DRAW_POINT, DRAW_TRANSITION, DRAW_ARC_ORIGIN, DRAW_ARC_DESTINATION, RUN,EDIT

@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="petrinet" />
+        <module name="petri-net" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="petri-net" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

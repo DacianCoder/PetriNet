@@ -1,4 +1,4 @@
-package gui;
+package gui.elements.utils;
 
 import lombok.experimental.UtilityClass;
 

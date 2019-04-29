@@ -1,12 +1,13 @@
-package gui;
+package gui.elements;
 
+import gui.elements.utils.DrawPositionUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
 
-import static gui.Constants.*;
+import static gui.elements.utils.Constants.*;
 
 @Getter
 @Setter
@@ -15,7 +16,6 @@ public class Point extends Node {
     public void render(Graphics g) {
         g.setColor(this.getColor() != null ? this.getColor() : Color.BLACK);
         g.drawOval(getLocation().getX(), getLocation().getY(), POINT_WIDTH, POINT_HEIGHT);
-//        g.drawLine(getLocation().getX() + POINT_WIDTH, getLocation().getY() + POINT_HEIGHT, 0, 0);
         handleTextDrawing(g);
     }
 

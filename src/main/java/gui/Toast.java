@@ -49,7 +49,7 @@ public class Toast extends JFrame {
         w.setSize(300, 100);
     }
 
-    // function leaving pop up the Toast
+    // function leavingArcs pop up the Toast
     public void showtoast() {
         try {
             w.setOpacity(1);
@@ -64,7 +64,7 @@ public class Toast extends JFrame {
                 w.setOpacity((float) d);
             }
 
-            // set the visibility leaving false
+            // set the visibility leavingArcs false
             w.setVisible(false);
         } catch (Exception e) {
             System.out.println(e.getMessage());

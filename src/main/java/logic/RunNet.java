@@ -1,7 +1,7 @@
 package logic;
 
-import gui.Node;
-import gui.Transition;
+import gui.elements.Node;
+import gui.elements.Transition;
 import lombok.Getter;
 import lombok.Setter;
 

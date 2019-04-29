@@ -1,12 +1,14 @@
-package gui;
+package gui.elements;
 
+import gui.elements.utils.DrawPositionUtils;
+import gui.ValueNameComponent;
 import lombok.*;
 
 import java.awt.*;
 
-import static gui.Constants.POINT_HEIGHT;
-import static gui.Constants.POINT_WIDTH;
-import static gui.LocationUtils.*;
+import static gui.elements.utils.Constants.POINT_HEIGHT;
+import static gui.elements.utils.Constants.POINT_WIDTH;
+import static gui.elements.utils.LocationUtils.*;
 
 @Getter
 @Setter
@@ -48,11 +50,11 @@ public class Arc implements ValueNameComponent {
             lineDestination.setX((int) (lineDestination.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
         }
 
+        g.setColor(Color.BLACK);
         if (destination instanceof Transition && ((Transition) destination).canRun()) {
             g.setColor(destination.getColor());
-        } else {
-            g.setColor(Color.BLACK);
         }
+
         g.drawLine(lineOrigin.getX(), lineOrigin.getY(), lineDestination.getX(), lineDestination.getY());
         //TODO draw an actual triangle
         g.fillRect(lineDestination.getX() - 5, lineDestination.getY() - 5, 10, 10);

@@ -1,11 +1,14 @@
-package gui;
+package gui.elements.utils;
 
 
+import gui.elements.Arc;
+import gui.elements.Location;
+import gui.elements.Node;
 import lombok.Data;
 
 import java.awt.*;
 
-import static gui.Constants.*;
+import static gui.elements.utils.Constants.*;
 
 @Data
 public class LocationUtils {
@@ -45,5 +48,9 @@ public class LocationUtils {
     public static boolean isNodeNameClicked(Node node, Location location) {
         return node.getTextPosition().intersects(new Rectangle(location.getX() - 5, location.getY() - 5,
                 (int) node.getTextPosition().getWidth() + 10, (int) node.getTextPosition().getHeight() + 10));
+    }
+
+    public static boolean isOverlapingNode(Rectangle nodeSpace, Location location) {
+        return nodeSpace.intersects(new Rectangle(location.toPoint(), MAX_NODE_AREA));
     }
 }

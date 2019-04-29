@@ -1,16 +1,21 @@
+import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import gui.*;
-import gui.enums.Actions;
+import gui.elements.Location;
+import gui.elements.Transition;
+import enums.Actions;
 import logic.Matrix;
 import logic.RunNet;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
+import java.util.Timer;
+import java.util.function.Consumer;
 
-import static gui.enums.Actions.*;
+import static enums.Actions.*;
 
 public class PetriNet {
     private JButton pointButton;
@@ -25,33 +30,40 @@ public class PetriNet {
     private JTextArea info;
     private JButton clearButton;
     private JCheckBox continuousItemsCheckBox;
+    private JButton undoButton;
     private Matrix matrix = new Matrix();
     private Actions action = NONE;
     private RunNet runNet = new RunNet(matrix);
 
     private String currentArcOrigin = "";
     private boolean isOriginPoint = false;
+    private boolean shouldRerender = true;
 
     public PetriNet() {
         pointButton.addActionListener(actionEvent -> {
+            loadLastState();
             action = DRAW_POINT;
             setActiveButton(pointButton);
         });
         arcButton.addActionListener(actionEvent -> {
+            loadLastState();
             action = DRAW_ARC_ORIGIN;
             setActiveButton(arcButton);
         });
         transitionButton.addActionListener(actionEvent -> {
+            loadLastState();
             action = DRAW_TRANSITION;
             setActiveButton(transitionButton);
         });
         runButton.addActionListener(actionEvent -> {
             action = RUN;
+            matrix.saveState();
             setActiveButton(runButton);
             runNet.validateTransitions();
             matrix.render(panel1.getGraphics());
         });
         editButton.addActionListener(aE -> {
+            loadLastState();
             action = EDIT;
             setActiveButton(editButton);
         });
@@ -60,10 +72,17 @@ public class PetriNet {
         board.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                Location location = new Location(e.getX(), e.getY());
-                doAction(location);
                 setText();
-                matrix.render(panel1.getGraphics());
+                doAction(new Location(e.getX(), e.getY()));
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        setText();
+                    }
+                }, 2000);
+                if (shouldRerender) {
+                    matrix.render(panel1.getGraphics());
+                }
             }
         });
 
@@ -74,6 +93,17 @@ public class PetriNet {
                 clearBoard();
             }
         });
+        undoButton.addActionListener(actionEvent -> {
+            matrix.undoLastAction();
+            clearBoard();
+            matrix.render(panel1.getGraphics());
+        });
+    }
+
+    private void loadLastState() {
+        if (action == RUN) {
+            this.matrix.loadLastState();
+        }
     }
 
     private void setText() {
@@ -102,34 +132,24 @@ public class PetriNet {
     }
 
     private void doAction(Location location) {
-
         switch (action) {
             case DRAW_POINT:
-                if(!matrix.shouldAddNode(location)){
-                    return;
-                }
-                matrix.addPoint(location);
-                if (!continuousItemsCheckBox.isSelected()) {
-                    pauseEditing();
-                }
+                Consumer<Location> pointConsumer = location1 -> matrix.addPoint(location1, null);
+                addBasicElement(location, pointConsumer);
                 break;
             case DRAW_TRANSITION:
-                matrix.addTransition(location);
-                if (!continuousItemsCheckBox.isSelected()) {
-                    pauseEditing();
-                }
+                Consumer<Location> transitionConsumer = location1 -> matrix.addTransition(location1, null);
+                addBasicElement(location, transitionConsumer);
                 break;
             case DRAW_ARC_DESTINATION:
-                if (isOriginPoint) {
-                    arcOriginToTransition(location);
-                    break;
-                }
-                arcTransitionToOrigin(location);
+                drawArcDestination(location);
+                shouldRerender = true;
                 break;
             case DRAW_ARC_ORIGIN:
                 currentArcOrigin = "";
                 info.setText("");
                 drawArcOrigin(location);
+                shouldRerender = false;
                 break;
             case RUN:
                 caseRun(location);
@@ -142,6 +162,24 @@ public class PetriNet {
         }
     }
 
+    private void drawArcDestination(Location location) {
+        if (isOriginPoint) {
+            arcOriginToTransition(location);
+            return;
+        }
+        arcTransitionToOrigin(location);
+    }
+
+    private void addBasicElement(Location location, Consumer<Location> consumer) {
+        if (!matrix.shouldAddNode(location)) {
+            return;
+        }
+        consumer.accept(location);
+        if (!continuousItemsCheckBox.isSelected()) {
+            pauseEditing();
+        }
+    }
+
     private void caseRun(Location location) {
         Optional<Transition> maybeTransition = matrix.getRunnableTransition(location);
         if (!maybeTransition.isPresent()) {
@@ -150,6 +188,7 @@ public class PetriNet {
         }
         maybeTransition.get().runTransition();
         clearBoard();
+        runNet.validateTransitions();
         matrix.render(panel1.getGraphics());
     }
 
@@ -191,8 +230,10 @@ public class PetriNet {
         arcDestination(maybeNextTransition.get());
     }
 
-    private void arcDestination(String nextTransition) {
-        matrix.addArc(currentArcOrigin, nextTransition);
+    private void arcDestination(String nextNode) {
+        if (matrix.shouldAddArc(currentArcOrigin, nextNode)) {
+            matrix.addArc(currentArcOrigin, nextNode);
+        }
         currentArcOrigin = "";
         if (!continuousItemsCheckBox.isSelected()) {
             pauseEditing();
@@ -205,9 +246,9 @@ public class PetriNet {
 
     private void editCase(Location location) {
         Optional<?> maybeElement = matrix.getArc(location);
-        maybeElement.ifPresent(o -> new EditItem(panel1, o));
+        maybeElement.ifPresent(o -> new EditItem(panel1, o, matrix));
         maybeElement = matrix.getNode(location);
-        maybeElement.ifPresent(o -> new EditItem(panel1, o));
+        maybeElement.ifPresent(o -> new EditItem(panel1, o, matrix));
         clearBoard();
     }
 
@@ -220,12 +261,12 @@ public class PetriNet {
     }
 
     private void setActiveButton(JButton button) {
+        clearBoard();
+        shouldRerender = true;
         if (action != RUN) {
-            clearBoard();
             runNet.unvalidateTransitions();
-            matrix.render(panel1.getGraphics());
         }
-        runNet.unvalidateTransitions();
+        matrix.render(panel1.getGraphics());
 
         mainButtons.forEach(jButton -> {
             if (jButton == button) {
@@ -243,10 +284,13 @@ public class PetriNet {
     }
 
     private void clearBoard() {
+        Rectangle boardRect = board.getBounds();
         Graphics g = panel1.getGraphics();
-        runNet.unvalidateTransitions();
+        if (action != RUN) {
+            runNet.unvalidateTransitions();
+        }
         g.setColor(Color.WHITE);
-        g.fillRect(0, pointButton.getY() + pointButton.getHeight(), clearButton.getX() + clearButton.getWidth(), clearButton.getY() - clearButton.getHeight());
+        g.fillRect(boardRect.x, boardRect.y, boardRect.width, boardRect.height);
     }
 
 }

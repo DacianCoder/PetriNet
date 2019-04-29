@@ -1,5 +1,6 @@
-package gui;
+package gui.elements;
 
+import gui.elements.utils.DrawPositionUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,15 +9,15 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gui.Constants.*;
+import static gui.elements.utils.Constants.*;
 
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class Transition extends Node {
-    private List<Arc> entering = new ArrayList<>();
-    private List<Arc> leaving = new ArrayList<>();
+    private List<Arc> enteringArcs = new ArrayList<>();
+    private List<Arc> leavingArcs = new ArrayList<>();
 
     public void render(Graphics g) {
         g.setColor(this.getColor());
@@ -39,23 +40,26 @@ public class Transition extends Node {
     }
 
     public void addComingArc(Arc arc) {
-        entering.add(arc);
+        enteringArcs.add(arc);
     }
 
     public void addGoingArc(Arc arc) {
-        leaving.add(arc);
+        leavingArcs.add(arc);
     }
 
     public boolean canRun() {
-        return !entering.isEmpty() && entering.stream().noneMatch(arc -> arc.getValue() > arc.getOrigin().getValue());
+        return !enteringArcs.isEmpty() && enteringArcs.stream().noneMatch(arc -> arc.getValue() > arc.getOrigin().getValue());
     }
 
     public void runTransition() {
         if (!canRun()) {
             return;
         }
-        entering.forEach(arc -> arc.getOrigin().setValue(arc.getOrigin().getValue() - arc.getValue()));
-        leaving.forEach(arc -> arc.getDestination().setValue(arc.getDestination().getValue() + arc.getValue()));
-        setColor(Color.BLACK);
+        enteringArcs.forEach(arc -> arc.getOrigin().setValue(arc.getOrigin().getValue() - arc.getValue()));
+        leavingArcs.forEach(arc -> arc.getDestination().setValue(arc.getDestination().getValue() + arc.getValue()));
+        if (!canRun()) {
+            setColor(Color.BLACK);
+        }
+        System.out.println();
     }
 }
