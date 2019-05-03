@@ -31,9 +31,8 @@ public class Transition extends Node {
     }
 
     private void handleTextDrawing(Graphics g) {
-        g.drawString(getName(), getLocation().getX(), getLocation().getY() - TEXT_SPACING_Y);
         int nameY = getLocation().getY() - TEXT_SPACING_Y;
-        int nameX = getLocation().getX();
+        int nameX = getLocation().getX() + TRANSITION_WIDTH / 4;
 
         g.drawString(getName(), nameX, nameY);
         textPosition = DrawPositionUtils.getTextRectangle(g, getName(), nameX, nameY);

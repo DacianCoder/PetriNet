@@ -21,7 +21,10 @@
           <background color="-1114625"/>
           <enabled value="false"/>
         </properties>
-        <border type="none"/>
+        <border type="line">
+          <font size="16"/>
+          <color color="-4473925"/>
+        </border>
         <children>
           <component id="2c56c" class="javax.swing.JTextArea" binding="info">
             <constraints>

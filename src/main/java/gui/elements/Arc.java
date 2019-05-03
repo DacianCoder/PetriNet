@@ -6,8 +6,7 @@ import lombok.*;
 
 import java.awt.*;
 
-import static gui.elements.utils.Constants.POINT_HEIGHT;
-import static gui.elements.utils.Constants.POINT_WIDTH;
+import static gui.elements.utils.Constants.*;
 import static gui.elements.utils.LocationUtils.*;
 
 @Getter
@@ -36,19 +35,7 @@ public class Arc implements ValueNameComponent {
                 getTransitionAbsolutePosition(this.destination.getLocation()) :
                 getPointAbsolutePosition(this.destination.getLocation());
 
-        double angleRad;
-//        TODO better algorithm
-        if (this.origin instanceof Point) {
-            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
-            lineOrigin.setX((int) (lineOrigin.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
-            lineOrigin.setY((int) (lineOrigin.getY() + (POINT_HEIGHT / 2 * Math.sin(angleRad))));
-        }
-
-        if (this.destination instanceof Point) {
-            angleRad = getAngle(this.destination.getLocation(), this.origin.getLocation());
-            lineDestination.setY((int) (lineDestination.getY() + (POINT_HEIGHT / 2 * Math.sin(angleRad))));
-            lineDestination.setX((int) (lineDestination.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
-        }
+        Double angleRad = transformNodesOrigins(lineOrigin, lineDestination);
 
         g.setColor(Color.BLACK);
         if (destination instanceof Transition && ((Transition) destination).canRun()) {
@@ -56,10 +43,48 @@ public class Arc implements ValueNameComponent {
         }
 
         g.drawLine(lineOrigin.getX(), lineOrigin.getY(), lineDestination.getX(), lineDestination.getY());
-        //TODO draw an actual triangle
-        g.fillRect(lineDestination.getX() - 5, lineDestination.getY() - 5, 10, 10);
+
+        handleArrowDrawing(g, lineDestination, angleRad);
     }
 
+    private Double transformNodesOrigins(Location lineOrigin, Location lineDestination) {
+        double angleRad = 0.0;
+        if (this.origin instanceof Point) {
+            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
+            lineOrigin.setX((int) (lineOrigin.getX() + (POINT_WIDTH / 2 * Math.cos(angleRad))));
+            lineOrigin.setY((int) (lineOrigin.getY() + (POINT_HEIGHT / 2 * Math.sin(angleRad))));
+        }
+
+        if (this.destination instanceof Point) {
+            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
+            lineDestination.setY((int) (lineDestination.getY() - (POINT_HEIGHT / 2 * Math.sin(angleRad))));
+            lineDestination.setX((int) (lineDestination.getX() - (POINT_WIDTH / 2 * Math.cos(angleRad))));
+        }
+
+        if (this.origin instanceof Transition) {
+            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
+            lineOrigin.setX((int) (lineOrigin.getX() + (TRANSITION_WIDTH / 2 * Math.cos(angleRad))));
+            lineOrigin.setY((int) (lineOrigin.getY() + (TRANSITION_WIDTH / 2 * Math.sin(angleRad))));
+        }
+
+        if (this.destination instanceof Transition) {
+            angleRad = getAngle(this.origin.getLocation(), this.destination.getLocation());
+            lineDestination.setY((int) (lineDestination.getY() - (TRANSITION_WIDTH / 2 * Math.sin(angleRad))));
+            lineDestination.setX((int) (lineDestination.getX() - (TRANSITION_WIDTH / 2 * Math.cos(angleRad))));
+        }
+
+        return angleRad;
+    }
+
+    private void handleArrowDrawing(Graphics g, Location lineDestination, double angleRad) {
+        Polygon polygon = new Polygon();
+        polygon.addPoint(lineDestination.getX(), lineDestination.getY());
+        Location left = getLeftArrowPoint(lineDestination, angleRad);
+        Location right = getRightArrowPoint(lineDestination, angleRad);
+        polygon.addPoint(left.getX(), left.getY());
+        polygon.addPoint(right.getX(), right.getY());
+        g.fillPolygon(polygon);
+    }
 
     private void handleValueDrawing(Graphics g) {
         String name = this.name + ": " + value;
@@ -70,8 +95,7 @@ public class Arc implements ValueNameComponent {
         textPosition = DrawPositionUtils.getTextRectangle(g, name, x, y);
     }
 
-
-    public double getAngle(Location from, Location to) {
-        return Math.atan2(to.getY() - from.getY(), to.getX() - from.getY());
+    private double getAngle(Location center, Location point) {
+        return Math.atan2(point.getY() - center.getY(), point.getX() - center.getX());
     }
 }

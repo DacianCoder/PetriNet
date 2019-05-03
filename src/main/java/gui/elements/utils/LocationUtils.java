@@ -18,6 +18,7 @@ public class LocationUtils {
     }
 
     public static Location getTransitionAbsolutePosition(Location location) {
+
         return new Location(location.getX() + (TRANSITION_WIDTH / 2), location.getY() + (TRANSITION_HEIGHT / 2));
     }
 

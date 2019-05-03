@@ -85,28 +85,33 @@ public class Matrix {
     }
 
 
-    public void addArc(String from, String to) {
+    public String addArc(String from, String to, String forcedName) {
         Arc arc = new Arc();
         Node origin = nodes.get(from);
         Node destination = nodes.get(to);
+        boolean isUndo = forcedName != null;
         arc.setOrigin(origin);
         arc.setDestination(destination);
+        arc.setValue(ARC_DEFAULT_VALUE);
+        String name = isUndo ? forcedName : ARC_PREFIX + arcCount;
+        arc.setName(name);
         if (origin instanceof Transition) {
             ((Transition) origin).addGoingArc(arc);
         } else {
             ((Transition) destination).addComingArc(arc);
         }
 
-        arc.setValue(ARC_DEFAULT_VALUE);
-        String name = ARC_PREFIX + arcCount;
-        arc.setName(name);
         if (Objects.isNull(arc.getDestination()) || Objects.isNull(arc.getOrigin())) {
             //throw error
             System.out.println("something went wrong");
         }
         arcs.put(name, arc);
         arcCount++;
-        addHistory(arc, ADD);
+        if (!isUndo) {
+            addHistory(arc, ADD);
+        }
+
+        return arc.getName();
     }
 
     public Optional<String> getPointName(Location location) {
@@ -213,7 +218,7 @@ public class Matrix {
     private void undoItemDeletion(Object item) {
 
         if (item instanceof Arc) {
-            addArc(((Arc) item).getOrigin().getName(), ((Arc) item).getDestination().getName());
+            addArc(((Arc) item).getOrigin().getName(), ((Arc) item).getDestination().getName(), ((Arc) item).getName());
             return;
         }
         if (item instanceof Point) {

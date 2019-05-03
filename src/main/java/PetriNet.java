@@ -232,7 +232,7 @@ public class PetriNet {
 
     private void arcDestination(String nextNode) {
         if (matrix.shouldAddArc(currentArcOrigin, nextNode)) {
-            matrix.addArc(currentArcOrigin, nextNode);
+            matrix.addArc(currentArcOrigin, nextNode, null);
         }
         currentArcOrigin = "";
         if (!continuousItemsCheckBox.isSelected()) {
