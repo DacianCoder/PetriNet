@@ -1,5 +1,3 @@
-import com.intellij.uiDesigner.core.GridConstraints;
-import com.intellij.uiDesigner.core.GridLayoutManager;
 import gui.*;
 import gui.elements.Location;
 import gui.elements.Transition;

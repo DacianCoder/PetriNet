@@ -91,15 +91,16 @@ public class Matrix {
         Node destination = nodes.get(to);
         arc.setOrigin(origin);
         arc.setDestination(destination);
+        arc.setValue(ARC_DEFAULT_VALUE);
+        String name = ARC_PREFIX + arcCount;
+        arc.setName(name);
         if (origin instanceof Transition) {
             ((Transition) origin).addGoingArc(arc);
         } else {
             ((Transition) destination).addComingArc(arc);
         }
 
-        arc.setValue(ARC_DEFAULT_VALUE);
-        String name = ARC_PREFIX + arcCount;
-        arc.setName(name);
+
         if (Objects.isNull(arc.getDestination()) || Objects.isNull(arc.getOrigin())) {
             //throw error
             System.out.println("something went wrong");
